@@ -17,10 +17,24 @@ const execFileAsync = promisify(execFile);
  */
 export class DockerClient {
   constructor() {
-    // 'local' siempre disponible — usa socket local o DOCKER_HOST
-    this.connections = new Map([
-      ['local', { docker: new Docker(), label: 'local (socket)', type: 'local' }],
-    ]);
+    // 'local' is the default connection every Docker tool falls back to. With
+    // DOCKER_SSH_HOST set it reaches that host's Docker over SSH, so the server
+    // can run anywhere (a Kubernetes pod) without mounting a Docker socket.
+    // Otherwise it uses the local socket or DOCKER_HOST.
+    this.connections = new Map([['local', DockerClient._defaultConnection()]]);
+  }
+
+  static _defaultConnection() {
+    const host = process.env.DOCKER_SSH_HOST;
+    if (!host) return { docker: new Docker(), label: 'local (socket)', type: 'local' };
+
+    const port = Number(process.env.DOCKER_SSH_PORT ?? 22);
+    const username = process.env.DOCKER_SSH_USER ?? 'root';
+    const privateKey = process.env.DOCKER_SSH_PRIVATE_KEY;
+    if (!privateKey) throw new Error('DOCKER_SSH_HOST is set but DOCKER_SSH_PRIVATE_KEY is empty.');
+
+    const docker = new Docker({ protocol: 'ssh', host, port, username, sshOptions: { privateKey } });
+    return { docker, label: `ssh://${username}@${host}:${port}`, type: 'ssh', host, port, username, privateKey };
   }
 
   // ─── Gestión de conexiones ────────────────────────────────────
@@ -66,6 +80,10 @@ export class DockerClient {
 
   listConnections() {
     return [...this.connections.entries()].map(([name, { label }]) => ({ name, host: label }));
+  }
+
+  defaultLabel() {
+    return this.connections.get('local').label;
   }
 
   _get(connection = 'local') {
