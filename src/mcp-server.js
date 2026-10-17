@@ -2634,6 +2634,7 @@ app.get('/', (_req, res) => {
       jenkins: process.env.JENKINS_URL || 'not configured',
       homeassistant: process.env.HA_URL || 'not configured',
       router: process.env.ASUS_ROUTER_URL || 'not configured',
+      docker: docker.defaultLabel(),
     },
   });
 });
@@ -2717,7 +2718,8 @@ app.listen(PORT, HOST, () => {
   console.log(`   Tools: ${JENKINS_TOOLS} Jenkins + ${HA_TOOLS} HA + ${PG_TOOLS} PG + ${DOCKER_TOOLS} Docker + ${SSH_TOOLS} SSH + ${ROUTER_TOOLS} Router = ${TOTAL_TOOLS} total`);
   console.log(`   Jenkins:        ${process.env.JENKINS_URL || '⚠️  no configurado (JENKINS_URL)'}`);
   console.log(`   Home Assistant: ${process.env.HA_URL || '⚠️  no configurado (HA_URL)'}`);
-  console.log(`   Router:         ${process.env.ASUS_ROUTER_URL || '⚠️  no configurado (ASUS_ROUTER_URL)'}\n`);
+  console.log(`   Router:         ${process.env.ASUS_ROUTER_URL || '⚠️  no configurado (ASUS_ROUTER_URL)'}`);
+  console.log(`   Docker:         ${docker.defaultLabel()}\n`);
   console.log(`   Claude Code:  claude mcp add --transport http local-network-admin http://localhost:${PORT}/mcp`);
   console.log(`   Open WebUI:   Settings → Tools → add http://<host>:${PORT}/sse\n`);
 });

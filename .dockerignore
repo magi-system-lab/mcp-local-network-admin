@@ -4,3 +4,6 @@ node_modules
 .gitignore
 Jenkinsfile
 *.md
+.github
+.pipelines
+launch.yml

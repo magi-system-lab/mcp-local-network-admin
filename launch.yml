@@ -1,0 +1,31 @@
+# launch.yml - mcp-local-network-admin
+profile: node
+app: mcp-local-network-admin
+
+# Defaults
+port: 3000
+host: mcp                        # mcp.lab.home.arpa once local DNS exists
+env:
+  TZ: America/Mexico_City
+  # Docker tools reach melchior's Docker over SSH instead of a mounted socket.
+  # The key lives in OpenBao; melchior only accepts it from balthazar's address.
+  DOCKER_SSH_HOST: 192.168.50.180
+  DOCKER_SSH_USER: mcp-docker
+
+environments:
+
+  # No secrets in the preview: it only proves the image builds and the server
+  # starts. Tools that need credentials report themselves as not configured.
+  preview:
+    env:
+      DOCKER_SSH_HOST: ""
+
+  prod:
+    branches: [main]
+    # Fixed, because MCP clients are registered by address.
+    node-port: 30500
+    secrets:
+      # JENKINS_*, HA_* and DOCKER_SSH_PRIVATE_KEY reach the pod as env vars
+      # through External Secrets Operator.
+      - path: prod/mcp-local-network-admin
+        format: env
